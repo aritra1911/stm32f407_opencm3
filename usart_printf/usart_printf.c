@@ -2,7 +2,6 @@
 https://github.com/libopencm3/libopencm3-examples/blob/master/examples/stm32/f1/lisa-m-2/usart_printf/usart_printf.c
  * To work with STM32F407VG
  */
-#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <usart_printf.h>
 
