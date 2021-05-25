@@ -7,8 +7,8 @@
 # OPENCM3_DIR : The libopencm3 directory [should be: ../opencm3]
 # DEVICE      : The STM32 board name [should be: STM32F407VG]
 #
-# include $(OPENCM3_DIR)/mk/genlink-config.mk should take care of the rest of the
-# variables : LDSCRIPT CPPFLAGS ARCH_FLAGS LIBDEPS LDLIBS
+# include $(OPENCM3_DIR)/mk/genlink-config.mk should take care of the rest of
+# the variables : LDSCRIPT CPPFLAGS ARCH_FLAGS LIBDEPS LDLIBS
 #
 # Don't forget to include $(OPENCM3_DIR)/mk/genlink-rules.mk which is having the
 # rule to generate $(LDSCRIPT).
@@ -17,7 +17,11 @@ CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 FLASH = st-flash
 
-CPPFLAGS += -MD -Wall -Wundef -I.
+USART_CONSOLE ?= USART2
+USART_BAUDRATE ?= 115200
+
+CPPFLAGS += -MD -Wall -Wundef -I. -I../include \
+            -DUSART_CONSOLE=$(USART_CONSOLE) -DUSART_BAUDRATE=$(USART_BAUDRATE)
 
 CFLAGS = -O0 -std=c99 -ggdb3 $(ARCH_FLAGS) -fno-common -ffunction-sections \
 	 -fdata-sections -Wextra -Wshadow -Wno-unused-variable \
@@ -29,7 +33,7 @@ LDFLAGS = --static -nostartfiles -T$(LDSCRIPT) $(ARCH_FLAGS) -ggdb3 \
 
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
-GENERATED_BINS = $(PROJECT).elf $(PROJECT).bin $(PROJECT).map $(PROJECT).o
+GENERATED_BINS = $(PROJECT).elf $(PROJECT).bin $(PROJECT).map $(OBJS)
 
 all: $(PROJECT).elf
 
@@ -48,4 +52,4 @@ $(PROJECT).elf: $(OBJS) $(LDSCRIPT) $(LIBDEPS)
 clean:
 	rm -f $(GENERATED_BINS) $(LDSCRIPT)
 
-.PHONY: clean flash
+.PHONY: clean flash all
