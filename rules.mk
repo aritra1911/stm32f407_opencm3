@@ -24,12 +24,13 @@ CPPFLAGS += -MD -Wall -Wundef -I. -I../include \
             -DUSART_CONSOLE=$(USART_CONSOLE) -DUSART_BAUDRATE=$(USART_BAUDRATE)
 
 CFLAGS = -O0 -std=c99 -ggdb3 $(ARCH_FLAGS) -fno-common -ffunction-sections \
-	 -fdata-sections -Wextra -Wshadow -Wno-unused-variable \
-	 -Wimplicit-function-declaration -Wredundant-decls -Wstrict-prototypes \
-	 -Wmissing-prototypes
+         -fdata-sections -Wextra -Wshadow -Wno-unused-variable \
+         -Wimplicit-function-declaration -Wredundant-decls -Wstrict-prototypes \
+         -Wmissing-prototypes
 
 LDFLAGS = --static -nostartfiles -T$(LDSCRIPT) $(ARCH_FLAGS) -ggdb3 \
-	  -Wl,-Map=$(PROJECT).map -Wl,--cref -Wl,--gc-sections -L$(OPENCM3_DIR)/lib
+          -Wl,-Map=$(PROJECT).map -Wl,--cref -Wl,--gc-sections \
+          -L$(OPENCM3_DIR)/lib
 
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
