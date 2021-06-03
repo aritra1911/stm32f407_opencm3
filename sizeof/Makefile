@@ -1,5 +1,5 @@
 PROJECT = $(lastword $(subst /, ,$(CURDIR)))
-SRCS = sizeof.c ../usart_printf/usart_printf.c
+SRCS = sizeof.c ../syscalls.c
 OBJS = $(SRCS:%.c=%.o)
 
 # You'll need to perform a `make clean` after altering these

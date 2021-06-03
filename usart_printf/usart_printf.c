@@ -2,45 +2,79 @@
 https://github.com/libopencm3/libopencm3-examples/blob/master/examples/stm32/f1/lisa-m-2/usart_printf/usart_printf.c
  * To work with STM32F407VG
  */
+#include <stdio.h>
+#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-#include <usart_printf.h>
+#include <libopencm3/stm32/usart.h>
 
-void usart_setup(void) {
-    /* Setup GPIO pins for USART transmit. */
-    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
+static void clock_setup(void) {
+    rcc_clock_setup_pll(&rcc_hse_8mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
 
-    /* Setup USART TX pin as alternate function. */
-    gpio_set_af(GPIOA, GPIO_AF7, GPIO2);
+    /* Enable GPIOD clock for LED */
+    rcc_periph_clock_enable(RCC_GPIOD);
 
-    /* Setup USART parameters */
-    usart_set_baudrate(USART_CONSOLE, USART_BAUDRATE);
-    usart_set_databits(USART_CONSOLE, 8);
-    usart_set_stopbits(USART_CONSOLE, USART_STOPBITS_1);
-    usart_set_mode(USART_CONSOLE, USART_MODE_TX);
-    usart_set_parity(USART_CONSOLE, USART_PARITY_NONE);
-    usart_set_flow_control(USART_CONSOLE, USART_FLOWCONTROL_NONE);
+    /* Enable GPIOA clock for USART. */
+    rcc_periph_clock_enable(RCC_GPIOA);
 
-    /* Finally enable the USART. */
-    usart_enable(USART_CONSOLE);
+    /* Enable clock for USART2 */
+    rcc_periph_clock_enable(RCC_USART2);
 }
 
-/**
- * Use USART_CONSOLE as a console.
- * This is a syscall for newlib
- * @param file
- * @param ptr
- * @param len
- * @return
- */
-int _write(int file, char *ptr, int len) {
-    int i;
+static void gpio_setup(void) {
+    /* Setup GPIO pin for USART2 transmit. */
+    gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
 
-    if (file == STDOUT_FILENO || file == STDERR_FILENO) {
-        for (i = 0; i < len; i++) {
-            usart_send_blocking(USART_CONSOLE, ptr[i]);
-        }
-        return i;
+    /* Setup USART2 TX pin as alternate function. */
+    gpio_set_af(GPIOA, GPIO_AF7, GPIO2);
+
+    /* Setup GPIO pin GP12 on GPIO port D for LED */
+    gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO12);
+
+    /* Turn on LED at GPIO12 */
+    gpio_set(GPIOD, GPIO12);
+}
+
+static void usart_setup(void) {
+    /* Setup USART parameters */
+    usart_set_baudrate(USART2, 115200);
+    usart_set_databits(USART2, 8);
+    usart_set_stopbits(USART2, USART_STOPBITS_1);
+    usart_set_mode(USART2, USART_MODE_TX);
+    usart_set_parity(USART2, USART_PARITY_NONE);
+    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+
+    /* Finally enable the USART. */
+    usart_enable(USART2);
+}
+
+int main(void) {
+    int counter = 0;
+    float fcounter = 0.0;
+    double dcounter = 0.0;
+
+    clock_setup();
+    gpio_setup();
+    usart_setup();
+
+    /*
+     * Write Hello World, an integer, float and double all over
+     * again while incrementing the counters.
+     */
+    while ( 1 ) {
+        printf("Hello, World! %i %.2f %.2lf\n", counter, fcounter, dcounter);
+
+        /* Toggle LED attached to GPIO12 indicating successful write. */
+        gpio_toggle(GPIOD, GPIO12);
+
+        counter++;
+        fcounter += 0.01;
+        dcounter += 0.01;
+
+        /* wait a little before printing again. *
+        for (uint32_t i = 0; i < 0x00FFFFFF; i++) {
+            __asm__("nop");
+        }*/
     }
-    errno = EIO;
-    return -1;
+
+    return 0;
 }

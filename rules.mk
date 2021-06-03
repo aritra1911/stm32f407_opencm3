@@ -3,7 +3,6 @@
 #
 # PROJECT     : The project name
 # OBJS        : Object files meant to be linked to produce the final ELF
-# TODO: Should there be a common Makefile defining the following two?
 # OPENCM3_DIR : The libopencm3 directory [should be: ../opencm3]
 # DEVICE      : The STM32 board name [should be: STM32F407VG]
 #
@@ -13,15 +12,13 @@
 # Don't forget to include $(OPENCM3_DIR)/mk/genlink-rules.mk which is having the
 # rule to generate $(LDSCRIPT).
 
+DEPS = $(OBJS:%.o=%.d)
+
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 FLASH = st-flash
 
-USART_CONSOLE ?= USART2
-USART_BAUDRATE ?= 115200
-
-CPPFLAGS += -MD -Wall -Wundef -I. -I../include \
-            -DUSART_CONSOLE=$(USART_CONSOLE) -DUSART_BAUDRATE=$(USART_BAUDRATE)
+CPPFLAGS += -MD -Wall -Wundef -I. -I../include
 
 CFLAGS = -O0 -std=c99 -ggdb3 $(ARCH_FLAGS) -fno-common -ffunction-sections \
          -fdata-sections -Wextra -Wshadow -Wno-unused-variable \
@@ -51,6 +48,6 @@ $(PROJECT).elf: $(OBJS) $(LDSCRIPT) $(LIBDEPS)
 	$(OBJCOPY) -O binary $< $@
 
 clean:
-	rm -f $(GENERATED_BINS) $(LDSCRIPT)
+	rm -f $(GENERATED_BINS) $(LDSCRIPT) $(DEPS)
 
 .PHONY: clean flash all

@@ -1,10 +1,6 @@
 PROJECT = $(lastword $(subst /, ,$(CURDIR)))
-SRCS = main.c usart_printf.c
+SRCS = usart_printf.c ../syscalls.c
 OBJS = $(SRCS:%.c=%.o)
-
-# You'll need to perform a `make clean` after altering these
-USART_CONSOLE := USART2
-USART_BAUDRATE := 115200
 
 OPENCM3_DIR = ../libopencm3
 DEVICE = STM32F407VG
