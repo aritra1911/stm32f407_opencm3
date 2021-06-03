@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <math.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/f4/rng.h>
+
+#define ACTUAL_PI 3.14159265358979323846264338327950288
 
 static void rcc_setup(void) {
     rcc_clock_setup_pll(&rcc_hse_8mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
@@ -78,31 +81,37 @@ static uint32_t random_u32(void) {
     return new_value;
 }
 
+static float random_float(void) {
+    /* Returns a float between -1.0 and +1.0 */
+    return random_u32() / (double) 0x7fffffff - 1.;
+}
+
+static float approximate_pi(uint32_t max_points) {
+    uint32_t incircle_points = 0;
+
+    for ( uint32_t i = 0; i < max_points; i++ ) {
+        float x = random_float();
+        float y = random_float();
+
+        if ( x*x + y*y < 1. )
+            incircle_points++;
+    }
+
+    return (incircle_points / (double) max_points) * 4.;
+}
+
 int main(void) {
     rcc_setup();
     rng_setup();
     gpio_setup();
     usart_setup();
 
-    uint32_t rnd;
+    float pi, error;
 
     while ( 1 ) {
-        /* Let's test the RNG */
-
-        /* if `random_u32()` goes into an infinite loop, GPIO14 won't stop
-         * glowing hence indicating an error (CEIS or SEIS). GPIO14 is the
-         * on-board red LED.
-         */
-        gpio_set(GPIOD, GPIO14);
-        rnd = random_u32();
-        gpio_clear(GPIOD, GPIO14);
-
-        printf("0x%08lX\n", rnd);
-
-        /* Waste some time *
-        for ( int i = 0; i < 10000000; i++ ) {
-            __asm__("nop");
-        }*/
+        pi = approximate_pi(100000);
+        error = fabs(ACTUAL_PI - pi);
+        printf("Pi is approximately : %1.22f    (error : %1.22f)\n", pi, error);
     }
     return 0;
 }
