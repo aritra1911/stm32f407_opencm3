@@ -14,6 +14,7 @@
 
 DEPS = $(OBJS:%.o=%.d)
 
+RM ?= rm -f
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 FLASH = st-flash
@@ -33,21 +34,29 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 GENERATED_BINS = $(PROJECT).elf $(PROJECT).bin $(PROJECT).map $(OBJS)
 
+ifndef VERBOSE
+	Q := @
+endif
+
 all: $(PROJECT).elf
 
 flash: $(PROJECT).bin
-	$(FLASH) write $^ 0x8000000
+	@echo "  FLASH   $^"
+	$(Q)$(FLASH) write $^ 0x8000000
 
 $(PROJECT).elf: $(OBJS) $(LDSCRIPT) $(LIBDEPS)
-	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
+	@echo "  LD      $@"
+	$(Q)$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
+	@echo "  CC      $@"
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
 
 %.bin: %.elf
-	$(OBJCOPY) -O binary $< $@
+	@echo "  OBJCPY  $@"
+	$(Q)$(OBJCOPY) -O binary $< $@
 
 clean:
-	rm -f $(GENERATED_BINS) $(LDSCRIPT) $(DEPS)
+	$(RM) $(GENERATED_BINS) $(LDSCRIPT) $(DEPS)
 
 .PHONY: clean flash all
