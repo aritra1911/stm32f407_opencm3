@@ -1,5 +1,5 @@
 PROJECT = $(lastword $(subst /, ,$(CURDIR)))
-SRCS = $(PROJECT).c ../syscalls.c
+SRCS = main.c
 OBJS = $(SRCS:%.c=%.o)
 
 OPENCM3_DIR = ../libopencm3
